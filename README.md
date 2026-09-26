@@ -299,3 +299,4 @@ MIT License — Educational use welcome.
 
 Built with ❤️ using Django, scikit-learn, and Chart.js
 # edu
+# educations
