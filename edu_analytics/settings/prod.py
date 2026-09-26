@@ -18,13 +18,36 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
     "https://*.railway.app,https://*.onrender.com"
 ).split(",")
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+DATABASE_URL = os.environ.get("DATABASE_URL")
+DB_HOST = os.environ.get("DB_HOST") or os.environ.get("POSTGRES_HOST")
+
+if DATABASE_URL:
+    ssl_require = os.environ.get("DB_SSL_REQUIRE", "False").lower() == "true"
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            
+        )
+    }
+elif DB_HOST:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME") or os.environ.get("POSTGRES_DB", "eduanalytics"),
+            "USER": os.environ.get("DB_USER") or os.environ.get("POSTGRES_USER", "eduuser"),
+            "PASSWORD": os.environ.get("DB_PASSWORD") or os.environ.get("POSTGRES_PASSWORD", "edupass"),
+            "HOST": DB_HOST,
+            "PORT": os.environ.get("DB_PORT") or os.environ.get("POSTGRES_PORT", "5432"),
+        }
+    }
+else:
+    # Fallback to SQLite if no production DB parameters are set
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Security — tell Django to trust Railway's reverse proxy
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
